@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+         android:layout_height="250dp"
+         android:layout_width="match_parent"
+         android:background="?attr/colorPrimary"
+         app:theme="?attr/actionBarTheme"
+         android:elevation="8dp"
+         app:contentInsetLeft="@dimen/second_keyline_default"
+         app:contentInsetStart="@dimen/second_keyline_default"
+         app:popupTheme="?attr/actionBarPopupTheme"
+         android:id="@+id/toolbar">
+
+        <TextView
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:gravity="center_horizontal"
+             style="@style/MyTitleText"
+             android:layout_marginTop="10dp"
+             android:maxLines="1"
+             android:id="@+id/logo"
+             android:layout_gravity="center_horizontal"
+             android:drawableTop="@drawable/logo_splash"
+             android:text="@string/app_ver" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+         android:layout_height="match_parent"
+         android:layout_width="match_parent"
+         android:clipToPadding="false">
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:gravity="center_horizontal"
+             android:orientation="vertical"
+             android:layout_centerHorizontal="true"
+             android:paddingTop="10dp">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:paddingEnd="16dp"
+                 app:showDividers="middle|end"
+                 android:paddingRight="16dp"
+                 android:orientation="vertical"
+                 android:paddingLeft="16dp"
+                 android:paddingStart="16dp"
+                 app:divider="@drawable/line_divider">
+
+                <android.zero.file.storage.ui.CompatTextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:visibility="visible"
+                     android:adjustViewBounds="true"
+                     android:drawablePadding="16dp"
+                     android:ellipsize="end"
+                     android:padding="16dp"
+                     app:drawableStart="@drawable/ic_star"
+                     android:textColor="?android:attr/textColorPrimary"
+                     android:layout_gravity="center_vertical"
+                     android:gravity="start|center_vertical"
+                     android:textAlignment="viewStart"
+                     android:minHeight="?attr/actionBarSize"
+                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                     style="@style/ButtonAppTheme"
+                     android:id="@+id/action_rate"
+                     android:text="Rate us on Play store" />
+
+                <android.zero.file.storage.ui.CompatTextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:visibility="visible"
+                     android:adjustViewBounds="true"
+                     android:drawablePadding="16dp"
+                     android:ellipsize="end"
+                     android:padding="16dp"
+                     app:drawableStart="@drawable/ic_support"
+                     android:textColor="?android:attr/textColorPrimary"
+                     android:layout_gravity="center_vertical"
+                     android:gravity="start|center_vertical"
+                     android:textAlignment="viewStart"
+                     android:minHeight="?attr/actionBarSize"
+                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                     style="@style/ButtonAppTheme"
+                     android:id="@+id/action_support"
+                     android:text="Show us more love" />
+
+                <android.zero.file.storage.ui.CompatTextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:visibility="gone"
+                     android:adjustViewBounds="true"
+                     android:drawablePadding="16dp"
+                     android:ellipsize="end"
+                     android:padding="16dp"
+                     app:drawableStart="@drawable/ic_sponsor"
+                     android:textColor="?android:attr/textColorPrimary"
+                     android:layout_gravity="center_vertical"
+                     android:gravity="start|center_vertical"
+                     android:textAlignment="viewStart"
+                     android:minHeight="?attr/actionBarSize"
+                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                     style="@style/ButtonAppTheme"
+                     android:id="@+id/action_sponsor"
+                     android:text="Our Sponsor" />
+
+                <android.zero.file.storage.ui.CompatTextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:visibility="visible"
+                     android:adjustViewBounds="true"
+                     android:drawablePadding="16dp"
+                     android:ellipsize="end"
+                     android:padding="16dp"
+                     app:drawableStart="@drawable/ic_share"
+                     android:textColor="?android:attr/textColorPrimary"
+                     android:layout_gravity="center_vertical"
+                     android:gravity="start|center_vertical"
+                     android:textAlignment="viewStart"
+                     android:minHeight="?attr/actionBarSize"
+                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                     style="@style/ButtonAppTheme"
+                     android:id="@+id/action_share"
+                     android:text="Spread the word" />
+
+                <android.zero.file.storage.ui.CompatTextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     android:visibility="visible"
+                     android:adjustViewBounds="true"
+                     android:drawablePadding="16dp"
+                     android:ellipsize="end"
+                     android:padding="16dp"
+                     app:drawableStart="@drawable/ic_feedback"
+                     android:textColor="?android:attr/textColorPrimary"
+                     android:layout_gravity="center_vertical"
+                     android:gravity="start|center_vertical"
+                     android:textAlignment="viewStart"
+                     android:minHeight="?attr/actionBarSize"
+                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                     style="@style/ButtonAppTheme"
+                     android:id="@+id/action_feedback"
+                     android:text="Feed us back" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <ImageView
+                 android:layout_height="wrap_content"
+                 android:layout_width="150dp"
+                 android:contentDescription="@string/made_with_love"
+                 android:src="@drawable/made_with_love"
+                 android:layout_gravity="center" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

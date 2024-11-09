@@ -1,0 +1,20 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/zerosidea/app/build.gradle",
+      "selection": {
+        "end": {
+          "column": 35,
+          "index": 705,
+          "line": 29
+        },
+        "start": {
+          "column": 23,
+          "index": 693,
+          "line": 29
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/zerosidea/app/build.gradle"
+}

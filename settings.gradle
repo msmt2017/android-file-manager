@@ -1,0 +1,44 @@
+pluginManagement {
+  repositories {
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/google/' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin/' }
+        maven { url 'https://dl.bintray.com/ppartisan/maven/' }
+        maven { url "https://clojars.org/repo/" }
+        maven { url "https://jitpack.io" }
+        google()
+        mavenLocal()
+        mavenCentral()
+        maven { url 'https://maven.fabric.io/public' }
+  }
+         resolutionStrategy {
+           eachPlugin {
+               if (requested.id.namespace == 'com.google.gms') {
+                   useModule('com.google.gms:google-services:4.3.10') // 使用最新版本
+               } else if (requested.id.namespace == 'io.fabric.tools') {
+                   useModule('io.fabric.tools:gradle:1.32.1') // 使用最新版本
+               }
+           }
+       }
+}
+
+
+dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/google/' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin/' }
+        maven { url 'https://dl.bintray.com/ppartisan/maven/' }
+        maven { url "https://clojars.org/repo/" }
+        maven { url "https://jitpack.io" }
+        google()
+        mavenLocal()
+        mavenCentral()
+        maven { url 'https://maven.fabric.io/public' }
+  }
+}
+
+rootProject.name = "zerosidea"
+
+include(":app")

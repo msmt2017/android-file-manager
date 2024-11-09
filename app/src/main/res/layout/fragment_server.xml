@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.zero.file.storage.ui.CommonFrameLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:background="?android:attr/windowBackground"
+     android:gravity="center_horizontal"
+     android:padding="@dimen/list_item_padding"
+     android:orientation="vertical">
+
+    <ScrollView
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         android:clipToPadding="false">
+
+        <LinearLayout
+             android:layout_height="match_parent"
+             android:layout_width="match_parent"
+             android:gravity="center_horizontal"
+             android:orientation="vertical">
+
+            <FrameLayout
+                 android:layout_height="120dp"
+                 android:layout_width="120dp"
+                 android:layout_marginBottom="30dp"
+                 android:layout_marginTop="30dp">
+
+                <android.zero.file.storage.ui.CircleImage
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent"
+                     app:background="@color/item_connection_server"
+                     android:layout_gravity="center" />
+
+                <ImageView
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent"
+                     android:contentDescription="@null"
+                     android:padding="30dp"
+                     app:srcCompat="@drawable/ic_connection_server"
+                     android:id="@+id/icon"
+                     android:layout_gravity="center" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="wrap_content"
+                 android:gravity="center_horizontal"
+                 android:minHeight="55dp"
+                 android:orientation="vertical"
+                 android:baselineAligned="false"
+                 android:id="@+id/line2">
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="wrap_content"
+                     android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                     android:ellipsize="end"
+                     android:padding="10dp"
+                     android:textColor="@color/accentColor"
+                     tools:text="ftp://192.168.1.101:2211"
+                     android:textIsSelectable="true"
+                     android:id="@+id/address"
+                     android:layout_gravity="start"
+                     android:textStyle="bold" />
+
+                <TextView
+                     android:layout_height="wrap_content"
+                     android:layout_width="wrap_content"
+                     android:visibility="gone"
+                     android:gravity="center"
+                     android:textAppearance="?android:attr/textAppearanceMedium"
+                     android:textColor="@color/button_text_color_red"
+                     tools:text="@string/local_no_connection"
+                     android:id="@+id/warning" />
+
+            </LinearLayout>
+
+            <TableLayout
+                 android:layout_height="wrap_content"
+                 android:layout_width="wrap_content">
+
+                <TableRow
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewEnd"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorPrimary"
+                         android:layout_weight="1"
+                         android:id="@android:id/title"
+                         android:text="Web Server" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="wrap_content"
+                         android:textAlignment="viewStart"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorSecondary"
+                         android:paddingStart="10dp"
+                         tools:text="Not Running"
+                         android:layout_weight="3"
+                         android:id="@+id/status" />
+
+                </TableRow>
+
+                <TableRow
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewEnd"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorPrimary"
+                         android:layout_weight="1"
+                         android:paddingTop="10dp"
+                         android:text="Shared path" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewStart"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorSecondary"
+                         android:paddingStart="10dp"
+                         tools:text="/Shared/"
+                         android:layout_weight="3"
+                         android:id="@+id/path"
+                         android:paddingTop="10dp" />
+
+                </TableRow>
+
+                <TableRow
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewEnd"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorPrimary"
+                         android:layout_weight="1"
+                         android:paddingTop="10dp"
+                         android:text="UserName" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewStart"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorSecondary"
+                         android:paddingStart="10dp"
+                         tools:text="HaKr"
+                         android:layout_weight="3"
+                         android:id="@+id/username"
+                         android:paddingTop="10dp" />
+
+                </TableRow>
+
+                <TableRow
+                     android:layout_height="match_parent"
+                     android:layout_width="match_parent">
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewEnd"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorPrimary"
+                         android:layout_weight="1"
+                         android:paddingTop="10dp"
+                         android:text="Password" />
+
+                    <TextView
+                         android:layout_height="wrap_content"
+                         android:layout_width="match_parent"
+                         android:textAlignment="viewStart"
+                         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                         android:ellipsize="middle"
+                         android:singleLine="true"
+                         android:textColor="?android:attr/textColorSecondary"
+                         android:paddingStart="10dp"
+                         tools:text="nothing"
+                         android:layout_weight="3"
+                         android:id="@+id/password"
+                         android:paddingTop="10dp" />
+
+                </TableRow>
+
+            </TableLayout>
+
+            <Button
+                 android:layout_height="wrap_content"
+                 android:layout_width="wrap_content"
+                 style="@style/ButtonTheme"
+                 android:layout_marginTop="10dp"
+                 android:id="@+id/action"
+                 android:text="@string/start_ftp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</android.zero.file.storage.ui.CommonFrameLayout>

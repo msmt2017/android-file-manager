@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.zero.file.storage.ui.CommonFrameLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:layout_height="wrap_content"
+     android:layout_width="match_parent"
+     android:background="#323232"
+     android:id="@+id/background">
+
+    <LinearLayout
+         android:layout_height="match_parent"
+         android:layout_width="match_parent"
+         android:minHeight="?android:attr/listPreferredItemHeightSmall"
+         android:orientation="horizontal"
+         android:baselineAligned="false"
+         android:layout_gravity="bottom">
+
+        <ImageButton
+             android:layout_height="match_parent"
+             android:layout_width="wrap_content"
+             android:contentDescription="@android:string/cancel"
+             android:background="?android:attr/selectableItemBackground"
+             android:textAppearance="?android:attr/textAppearanceSmall"
+             android:padding="16dp"
+             app:srcCompat="@drawable/ic_action_close"
+             android:id="@android:id/button2" />
+
+        <LinearLayout
+             android:layout_height="wrap_content"
+             android:layout_width="0dp"
+             android:orientation="vertical"
+             android:layout_weight="1"
+             android:layout_gravity="center_vertical">
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:textAlignment="viewStart"
+                 android:textSize="14sp"
+                 android:singleLine="true"
+                 android:textColor="@android:color/white"
+                 android:id="@android:id/title"
+                 android:layout_gravity="start" />
+
+            <TextView
+                 android:layout_height="wrap_content"
+                 android:layout_width="match_parent"
+                 android:textAlignment="viewStart"
+                 android:textSize="12sp"
+                 android:singleLine="true"
+                 android:textColor="@android:color/white"
+                 android:id="@android:id/text1"
+                 android:layout_gravity="start" />
+
+        </LinearLayout>
+
+        <FrameLayout
+             android:layout_height="match_parent"
+             android:layout_width="wrap_content">
+
+            <ImageButton
+                 android:layout_height="match_parent"
+                 android:layout_width="wrap_content"
+                 android:contentDescription="@string/menu_paste"
+                 android:background="?android:attr/selectableItemBackground"
+                 android:textAppearance="?android:attr/textAppearanceSmall"
+                 android:padding="16dp"
+                 android:textAllCaps="true"
+                 app:srcCompat="@drawable/ic_action_done"
+                 android:id="@android:id/button1"
+                 android:text="@string/menu_paste" />
+
+            <android.zero.file.storage.ui.MaterialProgressBar
+                 android:layout_height="@dimen/progress_bar_small_size"
+                 android:layout_width="@dimen/progress_bar_small_size"
+                 android:visibility="gone"
+                 android:indeterminate="true"
+                 style="@style/ListProgress"
+                 android:id="@android:id/progress"
+                 android:layout_gravity="center" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</android.zero.file.storage.ui.CommonFrameLayout>
