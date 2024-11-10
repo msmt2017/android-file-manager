@@ -35,6 +35,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import androidx.annotation.NonNull;
 import android.zero.R;
 import android.zero.file.storage.libcore.io.IoUtils;
@@ -46,8 +49,10 @@ import static android.zero.file.storage.provider.StorageProvider.FILE_URI;
 
 public class FileUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileUtils.class);
     private static final String TAG = "FileUtils";
-    private static final int BUFFER = 2048;
+   // private static final int BUFFER = 2048;
+private static final int BUFFER = 8192; // 8KB buffer
 
     /** Regular expression for safe filenames: no spaces or metacharacters */
     private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile("[\\w%+,./=_-]+");
@@ -291,8 +296,85 @@ public class FileUtils {
         }
         return false;
     }
-
+    
     public static boolean copyDocument(File file, File dest, String name) {
+        if (!file.exists() || file.isDirectory()) {
+            Log.v(TAG, "copyDocument: file not exist or is directory, " + file);
+            return false;
+        }
+
+        File destFile = getDestinationFile(dest, file, name);
+        if (destFile == null) {
+            Log.e(TAG, "copyDocument: failed to create destination file");
+            return false;
+        }
+
+        try (FileInputStream fis = new FileInputStream(file);
+             BufferedInputStream bis = new BufferedInputStream(fis, BUFFER);
+             FileOutputStream fos = new FileOutputStream(destFile);
+             BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER)) {
+
+            byte[] data = new byte[BUFFER];
+            int read;
+            while ((read = bis.read(data, 0, BUFFER)) != -1) {
+                bos.write(data, 0, read);
+            }
+            return true;
+
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "copyDocument: file not found, " + file, e);
+        } catch (IOException e) {
+            Log.e(TAG, "copyDocument: " + e.getMessage(), e);
+        }
+        return false;
+    }
+
+    private static File getDestinationFile(File dest, File file, String name) {
+        if (!dest.exists() && !dest.mkdirs()) {
+            Log.e(TAG, "getDestinationFile: failed to create destination directory");
+            return null;
+        }
+
+        String destFileName = TextUtils.isEmpty(name)
+                ? file.getName()
+                : name + "." + getExtFromFilename(file.getName());
+
+        File destFile = new File(dest, destFileName);
+        int n = 0;
+        while (destFile.exists() && n++ < 32) {
+            String destName = (TextUtils.isEmpty(name)
+                    ? getNameFromFilenameq(file.getName())
+                    : name) + " (" + n + ")." + getExtFromFilename(file.getName());
+            destFile = new File(dest, destName);
+        }
+
+        if (!destFile.exists()) {
+            try {
+                if (!destFile.createNewFile()) {
+                    Log.e(TAG, "getDestinationFile: failed to create destination file");
+                    return null;
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "getDestinationFile: " + e.getMessage(), e);
+                return null;
+            }
+        }
+        return destFile;
+    }
+
+    private static String getExtFromFilename(String filename) {
+        int dotIndex = filename.lastIndexOf('.');
+        return (dotIndex == -1) ? "" : filename.substring(dotIndex + 1);
+    }
+
+    private static String getNameFromFilenameq(String filename) {
+        int dotIndex = filename.lastIndexOf('.');
+        return (dotIndex == -1) ? filename : filename.substring(0, dotIndex);
+    }
+
+    
+/*
+    public static boolean File file, File dest, String name) {
         if (!file.exists() || file.isDirectory()) {
             Log.v(TAG, "copyDocument: file not exist or is directory, " + file);
             return false;
@@ -354,7 +436,7 @@ public class FileUtils {
 
         return false;
     }
-
+*/
     public static boolean deleteFile(File file) {
         if (file.exists() && file.isFile() && file.canWrite()) {
             return file.delete();
@@ -384,7 +466,7 @@ public class FileUtils {
     public static boolean compressFile(File parent, List<File> files) {
         boolean success = false;
         try {
-            File dest = new File(parent, FileUtils.getNameFromFilename(files.get(0).getName()) + ".zip");
+            File dest = new File(parent, FileUtils.getNameFromFilenameq(files.get(0).getName()) + ".zip");
             ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(dest));
             compressFile("", zout, files.toArray(new File[files.size()]));
             zout.close();
@@ -414,6 +496,52 @@ public class FileUtils {
         }
     }
 
+    public static String getNameFromFilenamew(String filename) {
+        return filename.substring(0, filename.lastIndexOf('.'));
+    }
+
+    public static boolean uncompress(File zipFile) {
+        boolean success = false;
+        File destFolder = new File(zipFile.getParent(), getNameFromFilenamer(zipFile.getName()));
+
+        try (FileInputStream fis = new FileInputStream(zipFile);
+             ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis))) {
+
+            destFolder.mkdirs();
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File dest = new File(destFolder, entry.getName());
+                dest.getParentFile().mkdirs();
+
+                if (entry.isDirectory()) {
+                    if (!dest.exists()) {
+                        dest.mkdirs();
+                    }
+                } else {
+                    try (FileOutputStream fos = new FileOutputStream(dest);
+                         BufferedOutputStream bos = new BufferedOutputStream(fos, 2048)) {
+
+                        byte[] buffer = new byte[2048];
+                        int size;
+                        while ((size = zis.read(buffer, 0, buffer.length)) != -1) {
+                            bos.write(buffer, 0, size);
+                        }
+                    }
+                }
+                zis.closeEntry();
+            }
+            success = true;
+        } catch (IOException e) {
+            logger.error("Error uncompressing file: {}", zipFile.getAbsolutePath(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error uncompressing file: {}", zipFile.getAbsolutePath(), e);
+        }
+        return success;
+    }
+
+    
+    
+    /*
     public static boolean uncompress(File zipFile) {
         boolean success = false;
         try {
@@ -452,9 +580,9 @@ public class FileUtils {
             e.printStackTrace();
         }
         return success;
-    }
+    }*/
 
-    public static String getExtFromFilename(String filename) {
+    public static String getExtFromFilenameer(String filename) {
         int dotPosition = filename.lastIndexOf('.');
         if (dotPosition != -1) {
             return filename.substring(dotPosition + 1, filename.length());
@@ -462,7 +590,7 @@ public class FileUtils {
         return "";
     }
 
-    public static String getNameFromFilename(String filename) {
+    public static String getNameFromFilenamer(String filename) {
         int dotPosition = filename.lastIndexOf('.');
         if (dotPosition != -1) {
             return filename.substring(0, dotPosition);
@@ -840,7 +968,7 @@ public class FileUtils {
             }
 
             String mimeType = getTypeForFile(file);
-            String displayName = FileUtils.getNameFromFilename(file.getName());
+            String displayName = FileUtils.getNameFromFilenameq(file.getName());
             DocumentFile destFile = dest.createFile(mimeType, displayName);
 
             int n = 0;

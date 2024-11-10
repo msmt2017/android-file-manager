@@ -151,37 +151,73 @@ public final class ColorUtils {
         return -1;
     }
 
+    
     static void RGBtoHSL(int r, int g, int b, float[] hsl) {
-        final float rf = r / 255f;
-        final float gf = g / 255f;
-        final float bf = b / 255f;
+    final float rf = r / 255f;
+    final float gf = g / 255f;
+    final float bf = b / 255f;
 
-        final float max = Math.max(rf, Math.max(gf, bf));
-        final float min = Math.min(rf, Math.min(gf, bf));
-        final float deltaMaxMin = max - min;
+    final float max = Math.max(rf, Math.max(gf, bf));
+    final float min = Math.min(rf, Math.min(gf, bf));
+    final float deltaMaxMin = max - min;
 
-        float h, s;
-        float l = (max + min) / 2f;
+    // 定义一个很小的正数作为容差
+    final float epsilon = 1e-6f;
 
-        if (max == min) {
-            // Monochromatic
-            h = s = 0f;
+    float h, s;
+    float l = (max + min) / 2f;
+
+    if (Math.abs(max - min) < epsilon) {
+        // Monochromatic
+        h = s = 0f;
+    } else {
+        if (max == rf) {
+            h = ((gf - bf) / deltaMaxMin) % 6f;
+        } else if (max == gf) {
+            h = ((bf - rf) / deltaMaxMin) + 2f;
         } else {
-            if (max == rf) {
-                h = ((gf - bf) / deltaMaxMin) % 6f;
-            } else if (max == gf) {
-                h = ((bf - rf) / deltaMaxMin) + 2f;
-            } else {
-                h = ((rf - gf) / deltaMaxMin) + 4f;
-            }
-
-            s =  deltaMaxMin / (1f - Math.abs(2f * l - 1f));
+            h = ((rf - gf) / deltaMaxMin) + 4f;
         }
 
-        hsl[0] = (h * 60f) % 360f;
-        hsl[1] = s;
-        hsl[2] = l;
+        s = deltaMaxMin / (1f - Math.abs(2f * l - 1f));
     }
+
+    hsl[0] = (h * 60f) % 360f;
+    hsl[1] = s;
+    hsl[2] = l;
+}
+    
+//    static void RGBtoHSL(int r, int g, int b, float[] hsl) {
+//        final float rf = r / 255f;
+//        final float gf = g / 255f;
+//        final float bf = b / 255f;
+//
+//        final float max = Math.max(rf, Math.max(gf, bf));
+//        final float min = Math.min(rf, Math.min(gf, bf));
+//        final float deltaMaxMin = max - min;
+//
+//        float h, s;
+//        float l = (max + min) / 2f;
+//
+//        if (max == min) {
+//            // Monochromatic
+//            h = s = 0f;
+//        } else {
+//            if (max == rf) {
+//                h = ((gf - bf) / deltaMaxMin) % 6f;
+//            } else if (max == gf) {
+//                h = ((bf - rf) / deltaMaxMin) + 2f;
+//            } else {
+//                h = ((rf - gf) / deltaMaxMin) + 4f;
+//            }
+//
+//            s =  deltaMaxMin / (1f - Math.abs(2f * l - 1f));
+//        }
+//
+//        hsl[0] = (h * 60f) % 360f;
+//        hsl[1] = s;
+//        hsl[2] = l;
+//    }
 
     static int HSLtoRGB (float[] hsl) {
         final float h = hsl[0];

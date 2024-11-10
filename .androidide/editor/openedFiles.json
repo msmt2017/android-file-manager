@@ -1,0 +1,20 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/zerosidea/app/src/main/java/android/zero/file/storage/root/RootCommands.java",
+      "selection": {
+        "end": {
+          "column": 42,
+          "index": 10043,
+          "line": 326
+        },
+        "start": {
+          "column": 25,
+          "index": 10026,
+          "line": 326
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/zerosidea/app/src/main/java/android/zero/file/storage/root/RootCommands.java"
+}

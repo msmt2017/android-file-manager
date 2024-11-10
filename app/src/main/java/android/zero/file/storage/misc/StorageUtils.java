@@ -33,6 +33,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
+
+import java.io.IOException;
 
 import android.zero.R;
 import android.zero.file.storage.libcore.util.Objects;
@@ -337,7 +340,50 @@ public final class StorageUtils {
 		}
 		return size;
 	}
-	
+    
+    
+    public MemoryUtils(ActivityManager activityManager) {
+        this.activityManager = activityManager;
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    public long getSizeTotalRAM(boolean isTotal) {
+        long sizeInBytes = 1000;
+        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(mi);
+
+        if (isTotal) {
+            try {
+                if (Utils.hasJellyBean()) {
+                    long totalMegs = mi.totalMem;
+                    sizeInBytes = totalMegs;
+                } else {
+                    try (RandomAccessFile reader = new RandomAccessFile("/proc/meminfo", "r")) {
+                        String load = reader.readLine();
+                        String[] totrm = load.split(" kB");
+                        String[] trm = totrm[0].split(" ");
+                        sizeInBytes = Long.parseLong(trm[trm.length - 1]) * 1024;
+                    }
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Error reading /proc/meminfo", e);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Error parsing memory info", e);
+            }
+        } else {
+            long availableMegs = mi.availMem;
+            sizeInBytes = availableMegs;
+        }
+
+        return sizeInBytes;
+    }
+
+    public static class Utils {
+        public static boolean hasJellyBean() {
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
+        }
+    }
+	/*
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private long getSizeTotalRAM(boolean isTotal) {
 		long sizeInBytes = 1000;
@@ -367,7 +413,7 @@ public final class StorageUtils {
 		}		
 		return sizeInBytes;
 	}
-	
+	*/
 	/**
 	 * @param isTotal  The parameter for calculating total size
 	 * @return return Total Size when isTotal is true else return Free Size of Internal memory(data folder)

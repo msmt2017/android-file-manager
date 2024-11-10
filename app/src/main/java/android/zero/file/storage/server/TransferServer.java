@@ -18,6 +18,17 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
+
+import android.net.nsd.NsdManager;
+import android.net.nsd.NsdServiceInfo;
+import android.util.Log;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 /**
  * Listen for new connections and create Transfers for them
  */
@@ -28,7 +39,9 @@ public class TransferServer implements Runnable {
     public interface Listener {
         void onNewTransfer(Transfer transfer);
     }
-
+   // private final Selector mSelector;
+  //  private final NsdManager.RegistrationListener mRegistrationListener;
+    
     private Thread mThread = new Thread(this);
     private boolean mStop;
 
@@ -65,10 +78,16 @@ public class TransferServer implements Runnable {
      * @param notificationHelper notification manager
      * @param listener callback for new transfers
      */
-    public TransferServer(Context context, NotificationHelper notificationHelper, Listener listener) throws IOException {
+    public TransferServer(Context context, NotificationHelper notificationHelper, Listener listener,Selector selector,NsdManager.RegistrationListener registrationListener) throws IOException {
         mContext = context;
         mNotificationHelper = notificationHelper;
         mListener = listener;
+        
+        mSelector = selector;
+        mRegistrationListener = registrationListener;
+        
+        
+        mStop = false;
     }
 
     /**
@@ -96,8 +115,78 @@ public class TransferServer implements Runnable {
         }
     }
 
-    // TODO: this method could use some refactoring
+       @Override
+    public void run() {
+        Log.i(TAG, "Starting server...");
+        mNotificationHelper.startListening();
+        NsdManager nsdManager = null;
+        ServerSocketChannel serverSocketChannel = null;
 
+        try (ServerSocketChannel channel = ServerSocketChannel.open()) {
+            serverSocketChannel = channel;
+            serverSocketChannel.socket().bind(new InetSocketAddress(40818));
+            serverSocketChannel.configureBlocking(false);
+            Log.i(TAG, String.format("Server bound to port %d", serverSocketChannel.socket().getLocalPort()));
+
+            nsdManager = (NsdManager) mContext.getSystemService(Context.NSD_SERVICE);
+            NsdServiceInfo serviceInfo = createNsdServiceInfo();
+            nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+            Log.i(TAG, "Service registered.");
+
+            SelectionKey selectionKey = serverSocketChannel.register(mSelector, SelectionKey.OP_ACCEPT);
+
+            while (!Thread.currentThread().isInterrupted()) {
+                mSelector.select();
+
+                if (mStop) {
+                    break;
+                }
+
+                if (selectionKey.isAcceptable()) {
+                    acceptConnection(serverSocketChannel);
+                }
+            }
+        } catch (IOException | NullPointerException e) {
+            Log.e(TAG, "Error occurred: " + e.getMessage(), e);
+        } finally {
+            unregisterService(nsdManager);
+            mNotificationHelper.stopListening();
+            Log.i(TAG, "Server stopped.");
+        }
+    }
+
+    private NsdServiceInfo createNsdServiceInfo() {
+        NsdServiceInfo serviceInfo = new NsdServiceInfo();
+        serviceInfo.setServiceName(TransferHelper.deviceName());
+        serviceInfo.setServiceType("_http._tcp.");
+        serviceInfo.setPort(40818);
+        return serviceInfo;
+    }
+
+    private void acceptConnection(ServerSocketChannel serverSocketChannel) throws IOException {
+        Log.i(TAG, "Accepting incoming connection");
+        SocketChannel socketChannel = serverSocketChannel.accept();
+        String unknownDeviceName = mContext.getString(R.string.service_transfer_unknown_device);
+        mListener.onNewTransfer(new Transfer(socketChannel, TransferHelper.transferDirectory(), TransferHelper.overwriteFiles(), unknownDeviceName));
+    }
+
+    private void unregisterService(NsdManager nsdManager) {
+        if (nsdManager != null) {
+            nsdManager.unregisterService(mRegistrationListener);
+        }
+    }
+
+    public void stopServer() {
+        mStop = true;
+    }
+
+    public interface OnNewTransferListener {
+        void onNewTransfer(Transfer transfer);
+    }
+    
+    
+    // TODO: this method could use some refactoring
+/*
     @Override
     public void run() {
         Log.i(TAG, "starting server...");
@@ -172,4 +261,6 @@ public class TransferServer implements Runnable {
 
         Log.i(TAG, "server stopped");
     }
+    */
+    
 }

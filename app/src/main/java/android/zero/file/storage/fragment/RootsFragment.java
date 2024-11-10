@@ -124,7 +124,7 @@ public class RootsFragment extends BaseFragment {
             headerLayout.setBackgroundColor(SettingsActivity.getPrimaryColor());
         }
         mList = (ExpandableListView) view.findViewById(android.R.id.list);
-        mList.setOnChildClickListener(mItemListener);
+        mList.setListener(mItemListener);
         mList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
        // DisplayMetrics metrics = new DisplayMetrics();
@@ -283,7 +283,7 @@ public class RootsFragment extends BaseFragment {
     }
 
     private ExpandableListView.OnChildClickListener mItemListener = new ExpandableListView.OnChildClickListener() {
-        @Override
+      /*  @Override
         public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
                                     int childPosition, long id) {
             final BaseActivity activity = BaseActivity.get(RootsFragment.this);
@@ -306,7 +306,40 @@ public class RootsFragment extends BaseFragment {
                 throw new IllegalStateException("Unknown root: " + item);
             }
             return false;
+        }*/
+        
+       @Override
+public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+                            int childPosition, long id) {
+    final BaseActivity activity = BaseActivity.get(RootsFragment.this);
+    final Item item = (Item) mAdapter.getChild(groupPosition, childPosition);
+
+    if (item instanceof RootItem) {
+        int index = parent.getFlatListPosition(ExpandableListView.getPackedPositionForChild(groupPosition, childPosition));
+        parent.setItemChecked(index, true);
+        RootInfo rootInfo = ((RootItem) item).root;
+
+        if (RootInfo.isProFeature(rootInfo) && !DocumentsApplication.isPurchased()) {
+            DocumentsApplication.openPurchaseActivity(activity);
+            // 如果用户需要购买，我们认为事件已经处理完成
+            return true;
         }
+
+        activity.onRootPicked(rootInfo, true);
+        Bundle params = new Bundle();
+        params.putString("type", rootInfo.title);
+        AnalyticsManager.logEvent("navigate", rootInfo, params);
+    } else if (item instanceof AppItem) {
+        activity.onAppPicked(((AppItem) item).info);
+    } else {
+        throw new IllegalStateException("Unknown root: " + item);
+    }
+
+    // 如果没有特殊处理，返回 false 表示事件可以继续传播
+    return false;
+}
+        
+        
     };
 
     private OnItemLongClickListener mItemLongClickListener = new OnItemLongClickListener() {
