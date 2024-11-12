@@ -67,12 +67,16 @@ public class MultiMap<K, V> {
 
     /**
      * Gets the list of values associated with each key.
-     */
+     
     public List<V> get(K key) {
         List<V> list = mInternalMap.get(key);
         return list == null ? Collections.EMPTY_LIST : list;
     }
-
+*/
+    public List<V> get(K key) {
+    List<V> list = mInternalMap.get(key);
+    return list != null ? list : Collections.emptyList();
+}
     /**
      * @see {@link Map#isEmpty()}
      */

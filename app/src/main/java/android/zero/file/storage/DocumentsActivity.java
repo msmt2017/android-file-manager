@@ -39,6 +39,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -379,8 +380,9 @@ public class DocumentsActivity extends BaseActivity implements MenuItem.OnMenuIt
     if (Utils.hasMarshmallow()) {
       RootsCache.updateRoots(this);
       mRoots = DocumentsApplication.getRootsCache(this);
-      final Handler handler = new Handler();
-      handler.postDelayed(
+   //   final Handler handler = new Handler(); //取消使用new Handler()，已过时
+    final Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(
           new Runnable() {
             @Override
             public void run() {
@@ -1827,6 +1829,7 @@ public class DocumentsActivity extends BaseActivity implements MenuItem.OnMenuIt
     }
   }
 
+    @SuppressWarnings("deprecation")
   private class PickFinishTask extends android.os.AsyncTask<Void, Void, Void> {
     private final Uri mUri;
 
@@ -1935,7 +1938,7 @@ public class DocumentsActivity extends BaseActivity implements MenuItem.OnMenuIt
     return (DocumentsActivity) fragment.getActivity();
   }
 
-  private final Handler handler = new Handler();
+  private final Handler handler = new Handler(Looper.getMainLooper());
   private Drawable oldBackground;
 
   private void changeActionBarColor() {

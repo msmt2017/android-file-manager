@@ -7,6 +7,18 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
+import android.os.Build;
+
+import static com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import android.os.Build;
+import androidx.annotation.NonNull;
+import com.google.android.gms.tasks.Task;
+
+
 
 public class CastyPlayer {
     private RemoteMediaClient remoteMediaClient;
@@ -47,11 +59,15 @@ public class CastyPlayer {
      * Seeks the current media file
      *
      * @param time the number of milliseconds to seek by
-     */
+     
     public void seek(long time) {
         if (remoteMediaClient != null) remoteMediaClient.seek(time);
     }
-
+    */
+       @SuppressWarnings("deprecation")
+    public void seek(long time) {
+        if (remoteMediaClient != null) remoteMediaClient.seek(time);
+    }
     /**
      * Tries to play or pause the current media file, depending of the current state
      */

@@ -3,6 +3,7 @@ package android.zero.file.storage.common;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -27,7 +28,7 @@ public class RecyclerFragment extends BaseFragment {
 	private Adapter<RecyclerView.ViewHolder> mAdapter;
 	private LayoutManager mLayoutManager;
     private CharSequence mEmptyText;
-    final private Handler mHandler = new Handler();
+    final private Handler mHandler = new Handler(Looper.getMainLooper());
     private RecyclerView mList;
     private View mListContainer;
     private boolean mListShown;

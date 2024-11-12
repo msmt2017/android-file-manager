@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -480,6 +481,7 @@ public class NumberProgressBar extends View {
         return bundle;
     }
 
+       @SuppressWarnings("deprecation")
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
         if(state instanceof Bundle){
@@ -496,7 +498,16 @@ public class NumberProgressBar extends View {
             setPrefix(bundle.getString(INSTANCE_PREFIX));
             setSuffix(bundle.getString(INSTANCE_SUFFIX));
             setProgressTextVisibility(bundle.getBoolean(INSTANCE_TEXT_VISBILITY) ? ProgressTextVisibility.Visible : ProgressTextVisibility.Invisible);
-            super.onRestoreInstanceState(bundle.getParcelable(INSTANCE_STATE));
+           // super.onRestoreInstanceState(bundle.getParcelable(INSTANCE_STATE));
+          
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // For API level 33 (Tiramisu) and above
+                super.onRestoreInstanceState(bundle.getParcelable(INSTANCE_STATE, Parcelable.class));
+            } else {
+                // For API levels below 33
+                super.onRestoreInstanceState(bundle.getParcelable(INSTANCE_STATE));
+            }
+            
             return;
         }
         super.onRestoreInstanceState(state);
@@ -507,6 +518,7 @@ public class NumberProgressBar extends View {
         return  dp * scale + 0.5f;
     }
 
+       @SuppressWarnings("deprecation")
     public float sp2px(float sp){
         final float scale = getResources().getDisplayMetrics().scaledDensity;
         return sp * scale;

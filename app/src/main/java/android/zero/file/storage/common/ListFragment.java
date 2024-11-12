@@ -11,14 +11,14 @@ import android.view.animation.AnimationUtils;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-
+import android.os.Looper;
 import android.zero.R;
 import android.zero.file.storage.common.BaseFragment;
 import android.zero.file.storage.misc.CrashReportingManager;
 
 public class ListFragment extends BaseFragment {
 	private ListAdapter mAdapter;
-    final private Handler mHandler = new Handler();
+    final private Handler mHandler = new Handler(Looper.getMainLooper());
     private ListView mList;
     private View mListContainer;
     private boolean mListShown;

@@ -93,6 +93,10 @@ android {
     
     
     packagingOptions {
+    resources {
+            exclude 'META-INF/nanohttpd/mimetypes.properties'
+     exclude 'META-INF/nanohttpd/default-mimetypes.properties'
+        }
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/DEPENDENCIES'
     }
@@ -150,11 +154,12 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.exifinterface:exifinterface:1.0.0'
     implementation 'androidx.mediarouter:mediarouter:1.0.0'
-    implementation 'com.google.android.gms:play-services-cast-framework:17.0.0'
+    implementation 'com.google.android.gms:play-services-cast:17.0.0' // 
+    implementation 'com.google.android.gms:play-services-cast-framework:18.0.0'
     implementation 'com.github.javiersantos:AppUpdater:2.6.5'
     implementation 'com.nanohttpd:nanohttpd:2.2.0'
     implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' // 或者最新的版本号
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' // 
     
     debugImplementation 'androidx.multidex:multidex:2.0.1'
 }

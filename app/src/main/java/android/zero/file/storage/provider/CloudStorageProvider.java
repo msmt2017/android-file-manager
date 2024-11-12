@@ -13,6 +13,7 @@ import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
+import android.os.Build;
 
 import com.cloudrail.si.interfaces.CloudStorage;
 import com.cloudrail.si.types.CloudMetaData;
@@ -111,15 +112,38 @@ public class CloudStorageProvider extends DocumentsProvider {
         notifyRootsChanged(getContext());
     }
 
+    @SuppressWarnings("deprecation")
     public static void notifyRootsChanged(Context context) {
-        context.getContentResolver()
+      //  context.getContentResolver()
+             //   .notifyChange(DocumentsContract.buildRootsUri(AUTHORITY), null, false);
+        
+         
+       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // For API level 24 (Nougat) and above
+            context.getContentResolver()
+                .notifyChange(DocumentsContract.buildRootsUri(AUTHORITY), null);
+        } else {
+            // For API levels below 24
+            context.getContentResolver()
                 .notifyChange(DocumentsContract.buildRootsUri(AUTHORITY), null, false);
+        }
+        
     }
 
+    @SuppressWarnings("deprecation")
     public static void notifyDocumentsChanged(Context context, String rootId) {
         Uri uri = DocumentsContract.buildChildDocumentsUri(AUTHORITY, rootId);
-        context.getContentResolver().notifyChange(uri, null, false);
-    }
+        // context.getContentResolver().notifyChange(uri, null, false);
+   
+       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // For API level 24 (Nougat) and above
+            context.getContentResolver().notifyChange(uri, null);
+        } else {
+            // For API levels below 24
+            context.getContentResolver().notifyChange(uri, null, false);
+        }
+        
+        }
 
     @Override
     public Cursor queryRoots(String[] projection) throws FileNotFoundException {

@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -63,7 +64,7 @@ public class SettingsActivity extends SettingsCommonActivity {
 
 	private Resources res;
 	private int actionBarColor;
-    private final Handler handler = new Handler();
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private Drawable oldBackground;
     private boolean mRecreate = false;
 

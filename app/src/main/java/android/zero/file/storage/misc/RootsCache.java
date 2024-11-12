@@ -30,6 +30,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
@@ -108,7 +109,7 @@ public class RootsCache {
 
     private class RootsChangedObserver extends ContentObserver {
         public RootsChangedObserver() {
-            super(new Handler());
+            super(new Handler(Looper.getMainLooper()));
         }
 
         @Override
@@ -229,6 +230,7 @@ public class RootsCache {
         }
 
         @TargetApi(Build.VERSION_CODES.KITKAT)
+        @SuppressWarnings("deprecation")
         @Override
         protected Void doInBackground(Void... params) {
             final long start = SystemClock.elapsedRealtime();
@@ -270,7 +272,16 @@ public class RootsCache {
                 mStoppedAuthorities = mTaskStoppedAuthorities;
             }
             mFirstLoad.countDown();
+            // resolver.notifyChange(sNotificationUri, null, false);
+           
+           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // 对于 Android Q (10) 及以上版本，使用 notifyChange(Uri, ContentObserver)
+            resolver.notifyChange(sNotificationUri, null);
+        } else {
+            // 对于 Android Q 以下版本，使用 notifyChange(Uri, ContentObserver, boolean)
             resolver.notifyChange(sNotificationUri, null, false);
+        }
+    
             return null;
         }
 

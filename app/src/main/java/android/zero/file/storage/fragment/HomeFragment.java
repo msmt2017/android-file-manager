@@ -30,7 +30,7 @@ import android.text.format.Formatter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.os.Looper;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -237,7 +237,7 @@ public class HomeFragment extends RecyclerFragment implements HomeAdapter.OnItem
     }
 
     public void reloadData(){
-        final Handler handler = new Handler();
+        final Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -348,7 +348,7 @@ if (viewId == R.id.recents) {
             AppsProvider.notifyRootsChanged(getActivity());
             RootsCache.updateRoots(getActivity(), AppsProvider.AUTHORITY);
             roots = DocumentsApplication.getRootsCache(getActivity());
-            final Handler handler = new Handler();
+            final Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {

@@ -33,6 +33,7 @@ public class BaseHolder extends MultiChoiceHelper.ViewHolder  {
 
     }
 
+    @SuppressWarnings("unchecked")
     protected static <V extends View> V inflateLayout(Context context, ViewGroup parent, int layout) {
         final LayoutInflater inflater = LayoutInflater.from(context);
         return (V) inflater.inflate(layout, parent, false);

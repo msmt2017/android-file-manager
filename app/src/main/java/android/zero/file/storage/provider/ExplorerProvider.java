@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.BaseColumns;
-
+import android.os.Build;
 import android.zero.BuildConfig;
 import android.zero.file.storage.model.DocumentsContract;
 import android.zero.file.storage.network.NetworkConnection;
@@ -219,6 +219,7 @@ public class ExplorerProvider extends ContentProvider {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mHelper.getWritableDatabase();
@@ -256,7 +257,15 @@ public class ExplorerProvider extends ContentProvider {
         // Send broadcast to registered ContentObservers, to refresh UI.
         Context ctx = getContext();
         assert ctx != null;
-        ctx.getContentResolver().notifyChange(uri, null, false);
+       // ctx.getContentResolver().notifyChange(uri, null, false);
+       
+       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // For API level 24 (Nougat) and above
+            ctx.getContentResolver().notifyChange(uri, null);
+        } else {
+            // For API levels below 24
+            ctx.getContentResolver().notifyChange(uri, null, false);
+        }
         return count;
     }
 }

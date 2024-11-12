@@ -19,6 +19,7 @@ package android.zero.file.storage.misc;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -142,7 +143,7 @@ public abstract class AsyncTaskLoader<D> extends Loader<D> {
     public void setUpdateThrottle(long delayMS) {
         mUpdateThrottle = delayMS;
         if (delayMS != 0) {
-            mHandler = new Handler();
+            mHandler = new Handler(Looper.getMainLooper());
         }
     }
 

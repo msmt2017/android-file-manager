@@ -29,6 +29,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.provider.Settings;
 import android.util.Log;
@@ -343,7 +344,7 @@ public class DirectoryFragment extends RecyclerFragment implements MenuItem.OnMe
                 if (result.sortOrder != SORT_ORDER_UNKNOWN) {
                     state.derivedSortOrder = result.sortOrder;
                 }
-				final Handler handler = new Handler();
+				final Handler handler = new Handler(Looper.getMainLooper());
 				handler.postDelayed(new Runnable() {
 					@Override
 					public void run() {

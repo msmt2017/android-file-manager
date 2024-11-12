@@ -26,8 +26,10 @@ import android.util.LruCache;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 import androidx.annotation.IntDef;
@@ -144,7 +146,7 @@ public class ThumbnailCache {
     /**
      * Removes all thumbnail cache associated to the given uri.
      * @param uri the uri which thumbnail cache to remove
-     */
+     
     public void removeUri(Uri uri) {
         TreeMap<Point, Pair<Uri, Point>> sizeMap;
         synchronized (mSizeIndex) {
@@ -156,6 +158,22 @@ public class ThumbnailCache {
             // removeKey() will be called by LruCache but we can't modify the map while we're
             // iterating over the collection of values.
             for (Pair<Uri, Point> index : sizeMap.values().toArray(new Pair[0])) {
+                mCache.remove(index);
+            }
+        }
+    }*/
+    public void removeUri(Uri uri) {
+        TreeMap<Point, Pair<Uri, Point>> sizeMap;
+        synchronized (mSizeIndex) {
+            sizeMap = mSizeIndex.get(uri);
+        }
+
+        if (sizeMap != null) {
+            // Create a list to hold all values to avoid ConcurrentModificationException
+            List<Pair<Uri, Point>> values = new ArrayList<>(sizeMap.values());
+
+            // Iterate over the list and remove each entry from the cache
+            for (Pair<Uri, Point> index : values) {
                 mCache.remove(index);
             }
         }

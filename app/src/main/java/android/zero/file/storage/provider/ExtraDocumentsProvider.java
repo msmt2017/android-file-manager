@@ -28,6 +28,7 @@ import android.os.Binder;
 import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore.Files.FileColumns;
 import android.support.provider.DocumentFile;
@@ -110,7 +111,7 @@ public class ExtraDocumentsProvider extends StorageProvider {
 
     @Override
     public boolean onCreate() {
-        mHandler = new Handler();
+        mHandler = new Handler(Looper.getMainLooper());
         updateRoots();
         return super.onCreate();
     }
