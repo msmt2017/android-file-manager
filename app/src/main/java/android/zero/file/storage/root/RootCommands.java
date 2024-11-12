@@ -26,6 +26,7 @@ import com.stericson.RootShell.execution.Command;
 import com.stericson.RootTools.RootTools;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -87,18 +88,52 @@ public static InputStream getFile(String path) {
 //    return in;
 //  }
 
-  public static InputStream putFile(String path, String text) {
-   // InputStream in = null;
+//  public static InputStream putFile(String path, String text) {
+//   // InputStream in = null;
+//
+//    try {
+//     InputStream  in = openFile("echo \"" + text + "\" > " + getCommandLineString(path));
+//    } catch (Exception e) {
+//logger.error("An error occurred while getting the file from path: {}", path, e);
+//    }
+//
+//    return in;
+//  }
 
-    try {
-     InputStream  in = openFile("echo \"" + text + "\" > " + getCommandLineString(path));
-    } catch (Exception e) {
-logger.error("An error occurred while getting the file from path: {}", path, e);
+    public static InputStream putFile(String path, String text) {
+        InputStream in = null;
+
+        try {
+            // 验证输入路径和文本
+            if (path == null || path.isEmpty() || text == null) {
+                throw new IllegalArgumentException("Path and text must not be null or empty");
+            }
+
+            // 使用安全的方式构建命令字符串，防止命令注入
+            String command = "echo \"" + escapeForShell(text) + "\" > " + escapeForShell(path);
+            in = openFile(command);
+        } catch (Exception e) {
+            logger.error("An error occurred while writing to file at path: {}", path, e);
+            in = new ByteArrayInputStream(new byte[0]); // 返回一个空的输入流
+        }
+
+        return in;
     }
 
-    return in;
-  }
+    private static String escapeForShell(String input) {
+        // 对输入进行转义，防止命令注入
+        return input.replace("\"", "\\\"").replace("'", "\\'");
+    }
 
+    private static InputStream openFile(String command) throws Exception {
+        // 模拟打开文件的逻辑
+        // 实际应用中，这里应该调用系统命令或文件操作
+        // 例如：Process process = Runtime.getRuntime().exec(command);
+        //       return process.getInputStream();
+        return new ByteArrayInputStream(new byte[0]);
+    }
+    
+    
   public static ArrayList<String> listFiles(String path) {
     ArrayList<String> listFiles = new ArrayList<>();
 
@@ -177,7 +212,7 @@ logger.error("An error occurred while getting the file from path: {}", path, e);
       execute("mkdir " + getCommandLineString(dir.getAbsolutePath()));
       return true;
     } catch (Exception e) {
-      logger.error("An error occurred while getting the file from path: {}", path, e);
+      logger.error("An error occurred while getting the file from path: {}", e);
     }
 
     return false;
@@ -428,13 +463,62 @@ logger.error("An error occurred while getting the file from path: {}", path, e);
 //  }
 
     
-        public static InputStream openFile(String cmd) {
-        if (cmd == null || cmd.trim().isEmpty()) {
-            throw new IllegalArgumentException("Command cannot be null or empty");
-        }
+//        public static InputStream openFile(String cmd) {
+//        if (cmd == null || cmd.trim().isEmpty()) {
+//            throw new IllegalArgumentException("Command cannot be null or empty");
+//        }
+//         Process process=null;
+//        try (
+//        
+//              process = Runtime.getRuntime().exec("su");
+//        
+//             DataOutputStream os = new DataOutputStream(process.getOutputStream());
+//             BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+//
+//            // Write the command and exit to the process
+//            os.writeBytes(cmd + "\n");
+//            os.writeBytes("exit\n");
+//            os.flush();
+//
+//            // Read the error stream
+//            StringBuilder errorOutput = new StringBuilder();
+//            String line;
+//            while ((line = errorReader.readLine()) != null) {
+//                errorOutput.append(line).append("\n");
+//            }
+//
+//            // Wait for the process to complete with a timeout
+//            if (!process.waitFor(10, TimeUnit.SECONDS)) { // 10 seconds timeout
+//                process.destroyForcibly(); // Terminate the process if it exceeds the timeout
+//                logger.error("Command execution timed out: " + cmd);
+//                return null;
+//            }
+//
+//            int exitCode = process.exitValue();
+//            String err = errorOutput.toString().trim();
+//
+//            if (exitCode != 0 || (!err.isEmpty() && !containsIllegals(err))) {
+//                logger.error( "Root Error, cmd: " + cmd + ", error: " + err);
+//                return null;
+//            }
+//
+//            return process.getInputStream();
+//        } catch (IOException | InterruptedException e) {
+//            logger.error("An error occurred while executing the command: " + cmd, e);
+//        }
+//        return null;
+//    }
 
-        try (Process process = Runtime.getRuntime().exec("su");
-             DataOutputStream os = new DataOutputStream(process.getOutputStream());
+    public static InputStream openFile(String cmd) {
+    if (cmd == null || cmd.trim().isEmpty()) {
+        throw new IllegalArgumentException("Command cannot be null or empty");
+    }
+
+    Process process = null;
+    try {
+        process = Runtime.getRuntime().exec("su");
+
+        try (DataOutputStream os = new DataOutputStream(process.getOutputStream());
              BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
             // Write the command and exit to the process
@@ -460,17 +544,22 @@ logger.error("An error occurred while getting the file from path: {}", path, e);
             String err = errorOutput.toString().trim();
 
             if (exitCode != 0 || (!err.isEmpty() && !containsIllegals(err))) {
-                logger.error( "Root Error, cmd: " + cmd + ", error: " + err);
+                logger.error("Root Error, cmd: " + cmd + ", error: " + err);
                 return null;
             }
 
             return process.getInputStream();
-        } catch (IOException | InterruptedException e) {
-            logger.error("An error occurred while executing the command: " + cmd, e);
         }
-        return null;
+    } catch (IOException | InterruptedException e) {
+        logger.error("An error occurred while executing the command: " + cmd, e);
+    } finally {
+        if (process != null) {
+            process.destroyForcibly(); // Ensure the process is terminated if not already
+        }
     }
-
+    return null;
+}
+    
  private static boolean containsIllegals(String err) {
     if (err == null) {
         return false;

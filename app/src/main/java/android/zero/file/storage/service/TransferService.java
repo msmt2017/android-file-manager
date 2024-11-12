@@ -56,25 +56,31 @@ public class TransferService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
+@Override
+public void onCreate() {
+    super.onCreate();
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        mNotificationHelper = new NotificationHelper(this);
-        try {
-            mTransferServer = new TransferServer(this, mNotificationHelper, new TransferServer.Listener() {
+    mNotificationHelper = new NotificationHelper(this);
+    try {
+        // 假设 Selector 和 RegistrationListener 可以为 null
+        mTransferServer = new TransferServer(
+            this, 
+            mNotificationHelper, 
+            new TransferServer.Listener() {
                 @Override
                 public void onNewTransfer(Transfer transfer) {
                     transfer.setId(mNotificationHelper.nextId());
                     mTransferHelper.addTransfer(transfer, null);
                 }
-            });
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        mTransferHelper = new TransferHelper(this, mNotificationHelper);
+            },
+            null, // Selector
+            null  // RegistrationListener
+        );
+    } catch (IOException e) {
+        Log.e(TAG, e.getMessage());
     }
+    mTransferHelper = new TransferHelper(this, mNotificationHelper);
+}
 
     private void startListening() {
         mTransferServer.start();

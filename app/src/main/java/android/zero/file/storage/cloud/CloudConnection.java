@@ -121,7 +121,7 @@ public class CloudConnection {
     public boolean isLoggedIn() {
         return isLoggedIn;
     }
-
+/*
     public String getType(){
         if (cloudStorage instanceof GoogleDrive) {
             return TYPE_GDRIVE;
@@ -135,7 +135,23 @@ public class CloudConnection {
             return TYPE_CLOUD;
         }
     }
-
+*/
+    public String getType() {
+    if (cloudStorage == null) {
+        throw new IllegalArgumentException("cloudStorage cannot be null");
+    }
+    if (cloudStorage instanceof GoogleDrive) {
+        return TYPE_GDRIVE;
+    } else if (cloudStorage instanceof Dropbox) {
+        return TYPE_DROPBOX;
+    } else if (cloudStorage instanceof OneDrive) {
+        return TYPE_ONEDRIVE;
+    } else if (cloudStorage instanceof Box) {
+        return TYPE_BOX;
+    } else {
+        return TYPE_CLOUD;
+    }
+}
     public String getTypeName(){
         return getTypeName(getType());
     }

@@ -6,7 +6,10 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -15,6 +18,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import java.util.logging.Level;
+import org.slf4j.LoggerFactory;
 
 /**
  * Perform a transfer from one device to another
@@ -26,7 +32,7 @@ public class Transfer implements Runnable {
 
     private static final int CHUNK_SIZE = 65536;
     private static final Gson mGson = new Gson();
-
+    
     /**
      * Listener for status changes
      */
@@ -395,6 +401,7 @@ public class Transfer implements Runnable {
     /**
      * Perform the transfer until it completes or an error occurs
      */
+    /*
     @Override
     public void run() {
         try {
@@ -467,4 +474,184 @@ public class Transfer implements Runnable {
             }
         }
     }
+    */
+    
+    
+        @Override
+    public void run() {
+        try (SocketChannel channel = mSocketChannel) { // 使用 try-with-resources 自动管理资源
+            SelectionKey selectionKey = channel.register(mSelector, mTransferStatus.getDirection() == TransferStatus.Direction.Receive ? SelectionKey.OP_READ : SelectionKey.OP_CONNECT);
+
+                      
+                      if (mTransferStatus.getDirection() == TransferStatus.Direction.Send) {
+                channel.connect(new InetSocketAddress(validateHost(mDevice.getHost()), validatePort(mDevice.getPort())));
+            }
+/*
+            *2.二号参考方法
+            if (mTransferStatus.getDirection() == TransferStatus.Direction.Send) {
+    InetAddress hostAddress = mDevice.getHost();
+    channel.connect(new InetSocketAddress(validateHost(hostAddress), validatePort(mDevice.getPort())));
+}
+            */
+            
+            while (!mStop) {
+                mSelector.select();
+
+                if (selectionKey.isConnectable()) {
+                    handleConnection(selectionKey);
+                }
+
+                if (selectionKey.isReadable()) {
+                    if (!processNextPacket(channel)) {
+                        if (mTransferStatus.getDirection() == TransferStatus.Direction.Receive) {
+                            updateInterestOps(selectionKey, SelectionKey.OP_WRITE);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (selectionKey.isWritable()) {
+                    if (!sendNextPacket(channel)) {
+                        if (mTransferStatus.getDirection() == TransferStatus.Direction.Receive) {
+                            break;
+                        } else {
+                            updateInterestOps(selectionKey, SelectionKey.OP_READ);
+                        }
+                    }
+                }
+            }
+
+            // 成功处理
+            synchronized (mTransferStatus) {
+                mTransferStatus.setState(TransferStatus.State.Succeeded);
+                notifyStatusChangedListeners2();
+            }
+        } catch (IOException e) {
+            logError(e); // 记录详细的错误日志
+            synchronized (mTransferStatus) {
+                mTransferStatus.setState(TransferStatus.State.Failed);
+                mTransferStatus.setError(e.getMessage());
+                notifyStatusChangedListeners2();
+            }
+        }
+    }
+
+    private void handleConnection(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        channel.finishConnect();
+        key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+        synchronized (mTransferStatus) {
+            mTransferStatus.setState(TransferStatus.State.Transferring);
+            notifyStatusChangedListeners2();
+        }
+    }
+
+    private void updateInterestOps(SelectionKey key, int ops) {
+        key.interestOps(ops);
+    }
+
+    
+
+private String validateHost(InetAddress host) {
+    // 验证主机地址
+    if (host == null) {
+        throw new IllegalArgumentException("Host cannot be null");
+    }
+
+    return host.getHostAddress();
+}
+
+//private String validateHost(String host) {
+//    // 验证主机地址
+//    if (host == null || host.isEmpty()) {
+//        throw new IllegalArgumentException("Host cannot be null or empty");
+//    }
+//
+//    try {
+//        InetAddress address = InetAddress.getByName(host);
+//        return address.getHostAddress();
+//    } catch (UnknownHostException e) {
+//        throw new IllegalArgumentException("Invalid host address: " + host, e);
+//    }
+//}
+//
+    private int validatePort(int port) {
+        // 验证端口号
+        if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("Invalid port number: " + port);
+        }
+        return port;
+    }
+    
+private static final Logger logger = LoggerFactory.getLogger(Transfer.class);
+    private void logError(Exception e) {
+        // 记录错误日志
+        logger.error( "Error occurred during transfer", e);
+    }
+
+    private boolean processNextPacket(SocketChannel channel) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int bytesRead = channel.read(buffer);
+        if (bytesRead == -1) {
+            // 对方关闭连接
+            return false;
+        }
+        buffer.flip();
+        // 处理接收到的数据
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data);
+        String message = new String(data).trim(); // 去除多余的空格
+        receivedMessages.add(message);
+        System.out.println("Received: " + message);
+        // 实际处理逻辑
+        // 可以在这里添加更多的处理逻辑，例如解析消息、存储数据等
+        return true; // 返回 true 表示还有更多数据包需要处理，false 表示处理完毕
+    }
+    private final List<String> receivedMessages = new ArrayList<>();
+    private final List<String> messagesToSend = new ArrayList<>();
+    
+    private boolean sendNextPacket(SocketChannel channel) throws IOException {
+        if (messagesToSend.isEmpty()) {
+            return false; // 没有更多消息需要发送
+        }
+        String message = messagesToSend.remove(0); // 获取第一个待发送的消息
+        ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+        while (buffer.hasRemaining()) {
+            channel.write(buffer);
+        }
+        System.out.println("Sent: " + message);
+        // 实际发送逻辑
+        // 可以在这里添加更多的发送逻辑，例如处理发送失败的情况
+        return true; // 返回 true 表示还有更多数据包需要发送，false 表示发送完毕
+    }
+private final List<StatusChangedListener> statusChangedListeners = new ArrayList<>();
+    private void notifyStatusChangedListeners2() {
+        // 通知状态变化监听器
+        for (StatusChangedListener listener : statusChangedListeners) {
+            listener.onStatusChanged(mTransferStatus);
+        }
+    }
+
+    public void addStatusChangedListener2(StatusChangedListener listener) {
+        statusChangedListeners.add(listener);
+    }
+
+    public void removeStatusChangedListener2(StatusChangedListener listener) {
+        statusChangedListeners.remove(listener);
+    }
+
+    public interface StatusChangedListener2 {
+        void onStatusChanged(TransferStatus status);
+    }
+
+    public void addMessageToSend(String message) {
+        messagesToSend.add(message);
+    }
+
+    public List<String> getReceivedMessages() {
+        return new ArrayList<>(receivedMessages);
+    }
+    
+    
 }

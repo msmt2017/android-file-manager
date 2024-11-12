@@ -1,40 +1,16 @@
 package android.zero.file.storage.server;
 
-/*
- * #%L
- * NanoHttpd-Webserver
- * %%
- * Copyright (C) 2012 - 2015 nanohttpd
- * %%
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the nanohttpd nor the names of its contributors
- *    may be used to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * #L%
- */
-
+import android.content.Context;
+import android.net.Uri;
 import android.os.Environment;
 
+import android.zero.file.storage.model.DocumentsContract;
+import java.io.InputStream;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -58,6 +34,8 @@ import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.util.ServerRunner;
 
 public class SimpleWebServer extends NanoHTTPD {
+    
+    private static final String TAG = "SimpleWebServer";
 
     /**
      * Default Index file names.
@@ -81,6 +59,9 @@ public class SimpleWebServer extends NanoHTTPD {
         LICENCE = text;
     }
 
+        private  Context context;
+
+    
     private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
     private final static String ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS, HEAD";
 
@@ -216,7 +197,7 @@ public class SimpleWebServer extends NanoHTTPD {
         this.quiet = quiet;
         this.cors = cors;
         this.rootDirs = new ArrayList<File>(wwwroots);
-
+this.context = context;
         init();
     }
 
@@ -437,138 +418,195 @@ public class SimpleWebServer extends NanoHTTPD {
         return response != null ? response : getNotFoundResponse();
     }
 
+    
+    private static final String MEDIA_THUMBNAILS = "/thumbnails";
+    
+
     @Override
     public Response serve(IHTTPSession session) {
-        Map<String, String> header = session.getHeaders();
-        Map<String, String> parms = session.getParms();
+        Map<String, String> params = session.getParms();
         String uri = session.getUri();
 
-        if (!this.quiet) {
-            System.out.println(session.getMethod() + " '" + uri + "' ");
+        if (uri.contains(MEDIA_THUMBNAILS)) {
+            String docid = params.get("docid");
+            String authority = params.get("authority");
 
-            Iterator<String> e = header.keySet().iterator();
-            while (e.hasNext()) {
-                String value = e.next();
-                System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
-            }
-            e = parms.keySet().iterator();
-            while (e.hasNext()) {
-                String value = e.next();
-                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
+            if (docid != null && authority != null) {
+                final Uri mediaUri = DocumentsContract.buildDocumentUri(authority, docid);
+
+                if (mediaUri != null) {
+                    String mimeType = "image/jpeg";
+                    InputStream inputStream = null;
+                    Bitmap thumbnail = null;
+                    try {
+                         thumbnail = DocumentsContract.getDocumentThumbnail(
+                            context.getContentResolver(),
+                            mediaUri,
+                            new Point(400, 400),
+                            null
+                        );
+
+                        if (thumbnail != null) {
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                            byte[] imageBytes = baos.toByteArray();
+                            inputStream = new ByteArrayInputStream(imageBytes);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error retrieving thumbnail", e);
+                        return newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", "Internal Server Error");
+                    } finally {
+                        if (thumbnail != null) {
+                            thumbnail.recycle();
+                        }
+                    }
+
+                    if (inputStream != null) {
+                        return newChunkedResponse(Status.OK, mimeType, inputStream);
+                    } else {
+                        return newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Thumbnail not found");
+                    }
+                }
             }
         }
 
-        for (File homeDir : this.rootDirs) {
-            // Make sure we won't die of an exception later
-            if (!homeDir.isDirectory()) {
-                return getInternalErrorResponse("given path is not a directory (" + homeDir + ").");
-            }
-        }
-        return respond(Collections.unmodifiableMap(header), session, uri);
+        return super.serve(session);
     }
 
+    
+    
+//    @Override
+//    public Response serve(IHTTPSession session) {
+//        Map<String, String> header = session.getHeaders();
+//        Map<String, String> parms = session.getParms();
+//        String uri = session.getUri();
+//
+//        if (!this.quiet) {
+//            System.out.println(session.getMethod() + " '" + uri + "' ");
+//
+//            Iterator<String> e = header.keySet().iterator();
+//            while (e.hasNext()) {
+//                String value = e.next();
+//                System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
+//            }
+//            e = parms.keySet().iterator();
+//            while (e.hasNext()) {
+//                String value = e.next();
+//                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
+//            }
+//        }
+//
+//        for (File homeDir : this.rootDirs) {
+//            // Make sure we won't die of an exception later
+//            if (!homeDir.isDirectory()) {
+//                return getInternalErrorResponse("given path is not a directory (" + homeDir + ").");
+//            }
+//        }
+//        return respond(Collections.unmodifiableMap(header), session, uri);
+//    }
+//
     /**
      * Serves file from homeDir and its' subdirectories (only). Uses only URI,
      * ignores all headers and HTTP parameters.
      */
-//    Response serveFile(String uri, Map<String, String> header, File file, String mime) {
-//        Response res;
-//        try {
-//            // Calculate etag
-//            String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
-//
-//            // Support (simple) skipping:
-//            long startFrom = 0;
-//            long endAt = -1;
-//            String range = header.get("range");
-//            if (range != null) {
-//                if (range.startsWith("bytes=")) {
-//                    range = range.substring("bytes=".length());
-//                    int minus = range.indexOf('-');
-//                    try {
-//                        if (minus > 0) {
-//                            startFrom = Long.parseLong(range.substring(0, minus));
-//                            endAt = Long.parseLong(range.substring(minus + 1));
-//                        }
-//                    } catch (NumberFormatException ignored) {
-//                    }
-//                }
-//            }
-//
-//            // get if-range header. If present, it must match etag or else we
-//            // should ignore the range request
-//            String ifRange = header.get("if-range");
-//            boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
-//
-//            String ifNoneMatch = header.get("if-none-match");
-//            boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
-//
-//            // Change return code and add Content-Range header when skipping is
-//            // requested
-//            long fileLen = file.length();
-//
-//            if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
-//                // range request that matches current etag
-//                // and the startFrom of the range is satisfiable
-//                if (headerIfNoneMatchPresentAndMatching) {
-//                    // range request that matches current etag
-//                    // and the startFrom of the range is satisfiable
-//                    // would return range from file
-//                    // respond with not-modified
-//                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-//                    res.addHeader("ETag", etag);
-//                } else {
-//                    if (endAt < 0) {
-//                        endAt = fileLen - 1;
-//                    }
-//                    long newLen = endAt - startFrom + 1;
-//                    if (newLen < 0) {
-//                        newLen = 0;
-//                    }
-//
-//                    FileInputStream fis = new FileInputStream(file);
-//                    fis.skip(startFrom);
-//
-//                    res = newFixedLengthResponse(Status.PARTIAL_CONTENT, mime, fis, newLen);
-//                    res.addHeader("Accept-Ranges", "bytes");
-//                    res.addHeader("Content-Length", "" + newLen);
-//                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
-//                    res.addHeader("ETag", etag);
-//                }
-//            } else {
-//
-//                if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
-//                    // return the size of the file
-//                    // 4xx responses are not trumped by if-none-match
-//                    res = newFixedLengthResponse(Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
-//                    res.addHeader("Content-Range", "bytes */" + fileLen);
-//                    res.addHeader("ETag", etag);
-//                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
-//                    // full-file-fetch request
-//                    // would return entire file
-//                    // respond with not-modified
-//                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-//                    res.addHeader("ETag", etag);
-//                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
-//                    // range request that doesn't match current etag
-//                    // would return entire (different) file
-//                    // respond with not-modified
-//
-//                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-//                    res.addHeader("ETag", etag);
-//                } else {
-//                    // supply the file
-//                    res = newFixedFileResponse(file, mime);
-//                    res.addHeader("Content-Length", "" + fileLen);
-//                    res.addHeader("ETag", etag);
-//                }
-//            }
-//        } catch (IOException ioe) {
-//            res = getForbiddenResponse("Reading file failed.");
-//        }
-//
-//        return res;
-//    }
+    Response serveFile(String uri, Map<String, String> header, File file, String mime) {
+        Response res;
+        try {
+            // Calculate etag
+            String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
+
+            // Support (simple) skipping:
+            long startFrom = 0;
+            long endAt = -1;
+            String range = header.get("range");
+            if (range != null) {
+                if (range.startsWith("bytes=")) {
+                    range = range.substring("bytes=".length());
+                    int minus = range.indexOf('-');
+                    try {
+                        if (minus > 0) {
+                            startFrom = Long.parseLong(range.substring(0, minus));
+                            endAt = Long.parseLong(range.substring(minus + 1));
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+
+            // get if-range header. If present, it must match etag or else we
+            // should ignore the range request
+            String ifRange = header.get("if-range");
+            boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
+
+            String ifNoneMatch = header.get("if-none-match");
+            boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
+
+            // Change return code and add Content-Range header when skipping is
+            // requested
+            long fileLen = file.length();
+
+            if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
+                // range request that matches current etag
+                // and the startFrom of the range is satisfiable
+                if (headerIfNoneMatchPresentAndMatching) {
+                    // range request that matches current etag
+                    // and the startFrom of the range is satisfiable
+                    // would return range from file
+                    // respond with not-modified
+                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                    res.addHeader("ETag", etag);
+                } else {
+                    if (endAt < 0) {
+                        endAt = fileLen - 1;
+                    }
+                    long newLen = endAt - startFrom + 1;
+                    if (newLen < 0) {
+                        newLen = 0;
+                    }
+
+                    FileInputStream fis = new FileInputStream(file);
+                    fis.skip(startFrom);
+
+                    res = newFixedLengthResponse(Status.PARTIAL_CONTENT, mime, fis, newLen);
+                    res.addHeader("Accept-Ranges", "bytes");
+                    res.addHeader("Content-Length", "" + newLen);
+                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
+                    res.addHeader("ETag", etag);
+                }
+            } else {
+
+                if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
+                    // return the size of the file
+                    // 4xx responses are not trumped by if-none-match
+                    res = newFixedLengthResponse(Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+                    res.addHeader("Content-Range", "bytes */" + fileLen);
+                    res.addHeader("ETag", etag);
+                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
+                    // full-file-fetch request
+                    // would return entire file
+                    // respond with not-modified
+                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                    res.addHeader("ETag", etag);
+                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
+                    // range request that doesn't match current etag
+                    // would return entire (different) file
+                    // respond with not-modified
+
+                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                    res.addHeader("ETag", etag);
+                } else {
+                    // supply the file
+                    res = newFixedFileResponse(file, mime);
+                    res.addHeader("Content-Length", "" + fileLen);
+                    res.addHeader("ETag", etag);
+                }
+            }
+        } catch (IOException ioe) {
+            res = getForbiddenResponse("Reading file failed.");
+        }
+
+        return res;
+    }
 
     private Response newFixedFileResponse(File file, String mime) throws FileNotFoundException {
         Response res;
@@ -594,169 +632,4 @@ public class SimpleWebServer extends NanoHTTPD {
         // let's just use default values for this version
         return System.getProperty(ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME, DEFAULT_ALLOWED_HEADERS);
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        /**
-     * Serves file from homeDir and its subdirectories (only). Uses only URI,
-     * ignores all headers and HTTP parameters.
-     */
-    public Response serveFile(String uri, Map<String, String> header, File file, String mime) {
-        Response res;
-        try {
-            // Calculate etag
-            String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + file.length()).hashCode());
-
-            // Support (simple) skipping:
-            long startFrom = 0;
-            long endAt = -1;
-            String range = header.get("range");
-            if (range != null) {
-                if (range.startsWith("bytes=")) {
-                    range = range.substring("bytes=".length());
-                    int minus = range.indexOf('-');
-                    try {
-                        if (minus > 0) {
-                            startFrom = Long.parseLong(range.substring(0, minus));
-                            endAt = Long.parseLong(range.substring(minus + 1));
-                        }
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-            }
-
-            // Get if-range header. If present, it must match etag or else we should ignore the range request
-            String ifRange = header.get("if-range");
-            boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
-
-            String ifNoneMatch = header.get("if-none-match");
-            boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
-
-            // Change return code and add Content-Range header when skipping is requested
-            long fileLen = file.length();
-            if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
-                // Range request that matches current etag and the startFrom of the range is satisfiable
-                if (headerIfNoneMatchPresentAndMatching) {
-                    // Respond with not-modified
-                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("ETag", etag);
-                } else {
-                    if (endAt < 0) {
-                        endAt = fileLen - 1;
-                    }
-                    long newLen = endAt - startFrom + 1;
-                    if (newLen < 0) {
-                        newLen = 0;
-                    }
-                    FileInputStream fis = new FileInputStream(file);
-                    fis.skip(startFrom);
-                    res = newFixedLengthResponse(Status.PARTIAL_CONTENT, mime, fis, newLen);
-                    res.addHeader("Accept-Ranges", "bytes");
-                    res.addHeader("Content-Length", "" + newLen);
-                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
-                    res.addHeader("ETag", etag);
-                }
-            } else {
-                if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
-                    // Return the size of the file
-                    res = newFixedLengthResponse(Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
-                    res.addHeader("Content-Range", "bytes */" + fileLen);
-                    res.addHeader("ETag", etag);
-                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
-                    // Full-file-fetch request
-                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("ETag", etag);
-                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
-                    // Range request that doesn't match current etag
-                    res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("ETag", etag);
-                } else {
-                    // Supply the file
-                    res = newFixedFileResponse(file, mime);
-                    res.addHeader("Content-Length", "" + fileLen);
-                    res.addHeader("ETag", etag);
-                }
-            }
-        } catch (IOException ioe) {
-            res = getForbiddenResponse("Reading file failed.");
-        }
-        return res;
-    }
-
-    private Response newFixedLengthResponse(Status status, String mime, String data) {
-        // Implement this method to create a fixed-length response
-        return new Response(status, mime, data);
-    }
-
-    private Response newFixedLengthResponse(Status status, String mime, FileInputStream fis, long length) {
-        // Implement this method to create a fixed-length response with a file input stream
-        return new Response(status, mime, fis, length);
-    }
-
-    private Response newFixedFileResponseq(File file, String mime) throws IOException {
-        // Implement this method to create a fixed-length response with a file
-        return new Response(Status.OK, mime, new FileInputStream(file), file.length());
-    }
-
-    private Response getForbiddenResponse(String message) {
-        // Implement this method to create a forbidden response
-        return new Response(Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, message);
-    }
-
-    public static class Response {
-        private Status status;
-        private String mimeType;
-        private Object data;
-        private long contentLength;
-        private Map<String, String> headers;
-
-        public Response(Status status, String mimeType, String data) {
-            this.status = status;
-            this.mimeType = mimeType;
-            this.data = data;
-        }
-
-        public Response(Status status, String mimeType, FileInputStream fis, long length) {
-            this.status = status;
-            this.mimeType = mimeType;
-            this.data = fis;
-            this.contentLength = length;
-        }
-
-        public Response(Status status, String mimeType, File file, long length) throws IOException {
-            this.status = status;
-            this.mimeType = mimeType;
-            this.data = new FileInputStream(file);
-            this.contentLength = length;
-        }
-
-        public void addHeader(String key, String value) {
-            if (headers == null) {
-                headers = new java.util.HashMap<>();
-            }
-            headers.put(key, value);
-        }
-
-        // Add getters and setters as needed
-    }
-
-    public enum Status {
-        OK, NOT_MODIFIED, PARTIAL_CONTENT, RANGE_NOT_SATISFIABLE, FORBIDDEN
-    }
-    
-    
-    
-    
-    
-    
-    
-    
 }

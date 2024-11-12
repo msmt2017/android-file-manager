@@ -201,6 +201,7 @@ public class DocumentsActivity extends BaseActivity implements MenuItem.OnMenuIt
   private boolean SAFPermissionRequested;
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  @SuppressWarnings("deprecation") //消除 getParcelable的警告
   @Override
   public void onCreate(Bundle icicle) {
     setTheme(R.style.DocumentsTheme_Document);
@@ -235,7 +236,14 @@ public class DocumentsActivity extends BaseActivity implements MenuItem.OnMenuIt
     initControls();
 
     if (icicle != null) {
-      mState = icicle.getParcelable(EXTRA_STATE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    // 使用新的 getParcelable 方法
+    mState = icicle.getParcelable(EXTRA_STATE, State.class);
+} else {
+    // 使用旧的 getParcelable 方法
+    mState = icicle.getParcelable(EXTRA_STATE);
+}
+    //  mState = icicle.getParcelable(EXTRA_STATE);
       mAuthenticated = icicle.getBoolean(EXTRA_AUTHENTICATED);
       mActionMode = icicle.getBoolean(EXTRA_ACTIONMODE);
     } else {

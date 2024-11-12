@@ -93,7 +93,7 @@ public final class StorageUtils {
             String path = getString(object, "path");
             String internalPath = getString(object, "internalPath");
 
-            if(Utils.hasPie() && !TextUtils.isEmpty(path)) {
+            if(hasPie() && !TextUtils.isEmpty(path)) {
                 id = TextUtils.isEmpty(id) && !TextUtils.isEmpty(path)
                         ? (path.contains(ID_EMULATED_INTERNAL) ? ID_EMULATED_INTERNAL : "") : id;
                 if(TextUtils.isEmpty(id)){
@@ -138,7 +138,7 @@ public final class StorageUtils {
             String mDescription = getDescription(object);
 
             boolean mPrimary = false;
-            if(Utils.hasJellyBeanMR1()){
+            if(hasJellyBeanMR1()){
                 mPrimary = getBoolean(object, "mPrimary");
             }
             else{
@@ -159,7 +159,7 @@ public final class StorageUtils {
             String mUserLabel = getString(object, "mUserLabel");
             String mState = getString(object, "mState");
 
-            if(Utils.hasPie()) {
+            if(hasPie()) {
                 android.os.storage.StorageVolume volume = mStorageManager.getStorageVolume(mPath);
                 if(null != volume) {
                     mPrimary = volume.isEmulated();
@@ -184,7 +184,9 @@ public final class StorageUtils {
         }
         return mounts;
     }
-
+ public static boolean hasPie() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P;
+    }
     private DiskInfo getDiskInfo(Object object) {
         String path = "";
         DiskInfo diskInfo = null;
@@ -211,7 +213,9 @@ public final class StorageUtils {
         }
         return diskInfo;
     }
-
+ public static boolean hasJellyBeanMR1() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1;
+    }
     private File getFile(Object object) {
         String path = "";
         File file = null;
@@ -219,7 +223,7 @@ public final class StorageUtils {
             Field mPath = object.getClass().getDeclaredField("mPath");
             mPath.setAccessible(true);
             Object pathObj = mPath.get(object);
-            if(Utils.hasJellyBeanMR1()){
+            if(hasJellyBeanMR1()){
                 file = (File)pathObj;
             }
             else{
@@ -231,10 +235,12 @@ public final class StorageUtils {
         }
         return file;
     }
-
+ public static boolean hasMarshmallow() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
     private String getDescription(Object object) {
         String description = "";
-        if(Utils.hasMarshmallow()){
+        if(hasMarshmallow()){
             description = getDescription(object, false);
         }
         else if(Utils.hasJellyBean()){
@@ -342,7 +348,7 @@ public final class StorageUtils {
 	}
     
     
-    public MemoryUtils(ActivityManager activityManager) {
+    public StorageUtils(ActivityManager activityManager) {
         this.activityManager = activityManager;
     }
 
@@ -426,7 +432,7 @@ public final class StorageUtils {
 			stat = new StatFs(path);	
 		} catch (Exception e) { }
 		if(null != stat){
-            if(Utils.hasJellyBeanMR2()){
+            if(hasJellyBeanMR2()){
                 final long blockSize = stat.getBlockSizeLong();
                 final long availableBlocks = (isTotal ? stat.getBlockCountLong() : stat.getAvailableBlocksLong());
                 return availableBlocks * blockSize;
@@ -439,7 +445,10 @@ public final class StorageUtils {
 		}
 		else return 0L;
 	}
-
+    public static boolean hasJellyBeanMR2() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
+    }
+    
     public static String getBestVolumeDescription(Context context, VolumeInfo vol) {
         if (vol == null) return null;
         // Nickname always takes precedence when defined

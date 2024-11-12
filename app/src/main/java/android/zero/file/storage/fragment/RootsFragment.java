@@ -36,6 +36,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ExpandableListAdapter;
+import static android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -92,7 +93,7 @@ public class RootsFragment extends BaseFragment {
     private ArrayList<Long> expandedIds = new ArrayList<>();
     private View proWrapper;
     private View title;
-
+private OnChildClickListener mItemListener1;
     public static void show(FragmentManager fm, Intent includeApps) {
         final Bundle args = new Bundle();
         args.putParcelable(EXTRA_INCLUDE_APPS, includeApps);
@@ -124,7 +125,8 @@ public class RootsFragment extends BaseFragment {
             headerLayout.setBackgroundColor(SettingsActivity.getPrimaryColor());
         }
         mList = (ExpandableListView) view.findViewById(android.R.id.list);
-        mList.setListener(mItemListener);
+      //  mList.setListener(mItemListener);
+        mList.setOnChildClickListener(mItemListener1);
         mList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
        // DisplayMetrics metrics = new DisplayMetrics();

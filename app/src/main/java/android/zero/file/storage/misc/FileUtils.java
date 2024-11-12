@@ -362,7 +362,7 @@ private static final int BUFFER = 8192; // 8KB buffer
         return destFile;
     }
 
-    private static String getExtFromFilename(String filename) {
+    public static String getExtFromFilename(String filename) {
         int dotIndex = filename.lastIndexOf('.');
         return (dotIndex == -1) ? "" : filename.substring(dotIndex + 1);
     }

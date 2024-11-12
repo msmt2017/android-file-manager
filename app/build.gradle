@@ -98,7 +98,7 @@ android {
     }
     lintOptions {
         // 检查特定的规则
-        check 'NewApi', 'InlinedApi', 'Performance', 'Security', 'Compatibility', 'Deprecated', 'MissingPermission', 'MissingFeature', 'RtlHardcoded', 'RtlEnabled', 'RtlSymmetry', 'IconMissingDensityFolder', 'Drawability'
+        checkOnly 'NewApi', 'InlinedApi', 'Performance', 'Security', 'Compatibility', 'Deprecated', 'MissingPermission', 'MissingFeature', 'RtlHardcoded', 'RtlEnabled', 'RtlSymmetry', 'IconMissingDensityFolder', 'Drawability'
 disable 'NotificationIconCompatibility'
         // 是否在发现问题时终止构建
         abortOnError false
@@ -130,18 +130,14 @@ disable 'NotificationIconCompatibility'
     
 }
 
-
-
-
-
-
-
 afterEvaluate {
     tasks.named('mergeDebugResources') {
         dependsOn(tasks.named('processDebugGoogleServices'))
     }}
 dependencies {
 
+
+    implementation 'org.nanohttpd:nanohttpd:+'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.jaredrummler:android-processes:1.1.1'
     implementation 'com.github.mjdev:libaums:0.5.5'
